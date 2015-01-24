@@ -48,47 +48,18 @@ var setting = {
 
 var url = 'https://www.kickstarter.com/discover/popular?ref=popular';
 var Crawler = require('../index');
-var Request = require('request');
 
-RequestPage(url, function(err, content) {
+require('./lib/requestPage')(url, function(err, content) {
   if(content) {
     Crawler.start(setting, content, function(err, result) {
       if(err)
         console.log('Err: ' + err);
-        
+
       console.log(result);
       process.exit(0);
     });
   }
-  
+
   else
     console.log('No content');
 });
-
-
-function RequestPage (url, callback) {
-  console.log('Request: ' + url);
-
-  var query = {
-    uri: encodeURI(url),
-    timeout: 20000,
-   // proxy: 'http://proxy.hinet.net:80'
-  }
-  Request(query, function(e, res, body) {
-    if(e || !res.statusCode)
-      callback(null, null);
-
-    else if(!e && res.statusCode === 200)
-      callback(null, body);
-
-    else if(res.statusCode === 404) {
-      console.log('404 Error requesting page %s', url);
-      callback(null, null);
-    }
-
-    else {
-      console.log('Error requesting page %s', url);
-      callback(e, null);
-    }
-  });
-};

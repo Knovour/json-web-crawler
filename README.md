@@ -2,10 +2,23 @@
 * * *
 Use JSON to list all elements (with css 3 and jquery selector) that you want to crawl.
 
-Readme is messy now, I know.
+#### [Demo]
+run the two scripts in demo folder in terminal
+
+## Usage
+```npm i json-web-crawler --save```
+```
+var Crawler = require('json-web-crawler');
+
+Crawler.start('HTML content', your setting, function(err, result) {
+  console.log(result);
+});
+```
+
 ## Variables
+It's messy now, I know.
 ```javascript
-var fullSetting = {
+var setting = {
   // @pageNotFound: if match one of these checklist, it will return page not found error.
   pageNotFound: [{
     elem: '.error-msg',
@@ -105,3 +118,5 @@ var fullSetting = {
   }]
 };
 ```
+
+[Demo]: http://runnable.com/VMPSRHC3Ys9L_12d/json-web-crawler
