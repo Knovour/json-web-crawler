@@ -3,7 +3,7 @@
 Use JSON to list all elements (with css 3 and jquery selector) that you want to crawl.
 
 #### [Demo]
-run the two scripts in demo folder in terminal
+run the two scripts (kickstarter & steam) in terminal to see what happen.
 
 ## Usage
 ```javascript
@@ -38,7 +38,7 @@ var setting = {
 
   // If type is 'list', you may need to set these values below.
   // =================================================================
-  // Must have, give it an elem name to loop  
+  // Must have, give it an elem name to loop
   listElems: 'li.search-resulte',
 
   // Optional, use if you don't want to crawl the whole list.
