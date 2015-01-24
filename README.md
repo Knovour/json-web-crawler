@@ -6,11 +6,13 @@ Use JSON to list all elements (with css 3 and jquery selector) that you want to 
 run the two scripts in demo folder in terminal
 
 ## Usage
-```npm i json-web-crawler --save```
+```javascript
+npm i json-web-crawler --save
 ```
+```javascript
 var Crawler = require('json-web-crawler');
 
-Crawler.start('HTML content', your setting, function(err, result) {
+Crawler.start('HTML content', your json setting, function(err, result) {
   console.log(result);
 });
 ```
