@@ -1,5 +1,5 @@
 # Json Web Crawler
-* * *
+
 Use JSON to list all elements (with css 3 and jquery selector) that you want to crawl.
 
 #### [Demo]
