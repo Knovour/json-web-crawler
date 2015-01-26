@@ -39,7 +39,7 @@ var setting = {
   // If type is 'list', you may need to set these values below.
   // =================================================================
   // Must have, give it an elem name to loop
-  listElems: 'li.search-resulte',
+  listElems: 'li.search-result',
 
   // Optional, use if you don't want to crawl the whole list.
   // I will use one of four optional keys only, limit > range > focus > ignore
