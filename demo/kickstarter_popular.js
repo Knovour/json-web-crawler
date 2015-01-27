@@ -1,3 +1,5 @@
+console.log('Crawl the popular list at Kickstarter. \n');
+
 var setting = {
   type: 'list',
   pageNotFound: [{

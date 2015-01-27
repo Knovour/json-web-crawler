@@ -1,3 +1,5 @@
+console.log('Crawl Dota 2 description at Steam site. \n');
+
 var setting = {
   type: 'content',
   container: '#game_highlights .rightcol',
