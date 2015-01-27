@@ -1,5 +1,5 @@
 # Json Web Crawler
-* * *
+
 Use JSON to list all elements (with css 3 and jquery selector) that you want to crawl.
 
 #### [Demo]
@@ -39,7 +39,7 @@ var setting = {
   // If type is 'list', you may need to set these values below.
   // =================================================================
   // Must have, give it an elem name to loop
-  listElems: 'li.search-resulte',
+  listElems: 'li.search-result',
 
   // Optional, use if you don't want to crawl the whole list.
   // I will use one of four optional keys only, limit > range > focus > ignore
@@ -120,5 +120,28 @@ var setting = {
   }]
 };
 ```
+
+
+## The MIT License (MIT)
+
+Copyright (c) 2015 Knovour Zheng
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 [Demo]: http://runnable.com/VMPSRHC3Ys9L_12d/json-web-crawler
