@@ -21,10 +21,10 @@ Crawler.start('HTML content', your json setting, function(err, result) {
 It's messy now, I know.
 ```javascript
 var setting = {
-  // @pageNotFound: if match one of these checklist, it will return page not found error.
+  // If match one of this checklist, it will return page not found error.
   pageNotFound: [{
     elem: '.error-msg',
-    get:  'text',    // call text()
+    get:  'text',
     equalTo:  '404'  // If match, will return Not Found Error
   }],
 
@@ -45,15 +45,15 @@ var setting = {
   // I will use one of four optional keys only, limit > range > focus > ignore
 
   // Just crawl ten elements from list
-  limit: 10,
+  limit: 10,         // eq(0) ~ eq(10)
 
   // [start, end], if without end, it will continue to the last one
-  range: [0, 12],
+  range: [6, 12],    // eq(6) ~ eq(12)
 
   // [list elements]
-  focus: [0, 3, 7],
+  focus: [0, 3, 7],  // [eq(0), eq(3), eq(7)]
 
-  // list all possible that you might want to ignore it. You can use -1, -2 to count from backward.
+  // Elements you want to ignore it. You can use -1, -2 to count from backward.
   ignore: [1, 2, 5],
   // =================================================================
 
@@ -80,7 +80,7 @@ var setting = {
     // use: ['replace', 'one', 'two']        //
     // use: ['substring', 0, 3]              //
     // use: ['prepend', 'text here']         // => 'text here' + str
-    // use: ['append', 'text here']          // => ste + 'text here'
+    // use: ['append', 'text here']          // => str + 'text here'
 
     // Optional, if use is not enough, use 'process'
     process: [
