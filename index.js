@@ -1,7 +1,7 @@
 var jsonCheck = require('./jsonCheck');
 var debugMode = false;
 
-exports.start = function(setting, content, callback) {
+exports.start = function(content, setting, callback) {
   var checkResult = jsonCheck.start(setting);
   debugMode = setting.debug;
   if(!checkResult.pass)

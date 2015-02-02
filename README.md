@@ -59,7 +59,7 @@ var setting = {
 
   // search DOM elements under $(container) or $(container).find(listElems)
   keys: [{
-    key:  'main',            // Must have
+    name:  'main',            // Must have
     elem: '.element1:eq(0)', // Must have, If empty or undefined, it will use container or listElems instead
     noChild: true,           // Optional, remove all children elem under $element
     outOfContainer: true,    // Optional, If exist, It will use $('html').find()
@@ -89,26 +89,26 @@ var setting = {
       ['substring', 0, 3]
     ]
   }, {
-    key:  'detail',
+    name:  'detail',
     elem: 'table tbody',
 
     // If the value you want is sperated to several elements, use collect to get all elems
     collect: {
       elems: [{
-          elem: 'tr:nth-child(1)',
-          get:  'text',
+        elem: 'tr:nth-child(1)',
+        get:  'text',
       }, {
-          elem: 'tr:nth-child(2)',
-          get:  'num',
+        elem: 'tr:nth-child(2)',
+        get:  'num',
       }, {
-          get:  ['attr', 'href']  // If no elem, the default is parent elem
+        get:  ['attr', 'href']  // If no elem, the default is parent elem
       }],
 
       // without this, collect will return array
       combineWith: ', '
     }
   }], {
-    key:  'detail2',
+    name:  'detail2',
     elem: 'table tbody tr',
 
     // It will run all tr elems you set
