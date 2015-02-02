@@ -3,9 +3,9 @@ console.log('Crawl the popular list at Kickstarter. \n');
 var setting = {
   type: 'list',
   pageNotFound: [{
-  	elem: '.grey-frame-inner h1',
-  	get:  'text',
-  	equalTo: '404'
+    elem: '.grey-frame-inner h1',
+    get:  'text',
+    equalTo: '404'
   }],
   container: '#projects_list',
   listElems: '.project-card',
@@ -17,16 +17,16 @@ var setting = {
     elem: '.project-title',
     get:  'text',
   }, {
-  	name: 'image',
-  	elem: '.project-thumbnail img',
-  	get:  ['attr', 'src']
+    name: 'image',
+    elem: '.project-thumbnail img',
+    get:  ['attr', 'src']
   }, {
     name: 'link',
     elem: '.project-title a',
     get:  ['attr', 'href'],
     process: [
-    	['split', '?', 0],
-    	['prepend', 'https://www.kickstarter.com']
+      ['split', '?', 0],
+      ['prepend', 'https://www.kickstarter.com']
     ]
   }, {
     name: 'description',
@@ -37,10 +37,10 @@ var setting = {
     elem: '.project-stats-value:eq(0)',
     get:  'text'
   }, {
-  	name: 'percentPledged',
-  	elem: '.project-percent-pledged',
-  	get:  ['attr', 'style'],
-  	use:  ['split', /:\s?/g, 1]
+    name: 'percentPledged',
+    elem: '.project-percent-pledged',
+    get:  ['attr', 'style'],
+    use:  ['split', /:\s?/g, 1]
   }, {
     name: 'pledged',
     elem: '.money.usd',
@@ -53,7 +53,7 @@ var Crawler = require('../index');
 
 require('./lib/requestPage')(url, function(err, content) {
   if(content) {
-    Crawler.start(setting, content, function(err, result) {
+    Crawler.start(content, setting, function(err, result) {
       if(err)
         console.log('Err: ' + err);
 
