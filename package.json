@@ -1,6 +1,6 @@
 {
   "name": "json-web-crawler",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Turn the web crawler code into a single json",
   "main": "index.js",
   "scripts": {
