@@ -129,7 +129,7 @@ function crawlContent($, $content, keys) {
           }).get();
         }
 
-        data[singleKey.name] = singleKey.collect.combineWith ? tmpArr.join(singleKey.collect.combineWith) : tmpArr;
+        data[singleKey.name] = (typeof(singleKey.collect.combineWith) !== 'undefined') ? tmpArr.join(singleKey.collect.combineWith) : tmpArr;
       }
 
       else
