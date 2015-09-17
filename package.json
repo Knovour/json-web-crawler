@@ -1,6 +1,6 @@
 {
   "name": "json-web-crawler",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "Turn the web crawler code into a single json",
   "main": "index.js",
   "scripts": {
@@ -10,14 +10,16 @@
     "json",
     "web-crawler",
     "crawl",
-    "jquery"
+    "jquery",
+    "jsdom"
   ],
   "author": "Knovour",
   "license": "MIT",
   "dependencies": {
-    "jquery": "^2.1.3",
-    "jsdom": "^2.0.0",
-    "request": "^2.51.0"
+    "jquery": "^2.1.4",
+    "jsdom": "3.1.2",
+    "lodash": "^3.10.1",
+    "request": "^2.62.0"
   },
   "repository": {
     "type": "git",

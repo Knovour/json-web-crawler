@@ -12,13 +12,14 @@ npm i json-web-crawler --save
 ```javascript
 var Crawler = require('json-web-crawler');
 
-Crawler.start('HTML content', your json setting, function(err, result) {
+Crawler('HTML content', your json setting, function(err, result) {
   console.log(result);
 });
 ```
 
 ## Variables
 It's messy now, I know.
+
 ```javascript
 var setting = {
   // If match one of this checklist, it will return page not found error.
@@ -28,96 +29,85 @@ var setting = {
     equalTo:  '404'  // If match, will return Not Found Error
   }],
 
-  // 'content' or 'list', default is content
+  // 'content' or 'list', default is content if not set
   // Content: crawl page to a single json.
-  // List: crawl a list like Google search result into multi data.
   type: 'content',
-
   // DOM element that will focus on.
   container: '.container',
 
+  // or
+  // List: crawl a list like Google search result into multi data.
+  type: 'list',
+  // DOM element that will loop to crawl
+  container: 'li.search-result',
+
   // If type is 'list', you may need to set these values below.
   // =================================================================
-  // Must have, give it an elem name to loop
-  listElems: 'li.search-result',
 
-  // Optional, use if you don't want to crawl the whole list.
-  // I will use one of four optional keys only, limit > range > focus > ignore
-
-  // Just crawl ten elements from list
-  limit: 10,         // eq(0) ~ eq(10)
-
-  // [start, end], if without end, it will continue to the last one
-  range: [6, 12],    // eq(6) ~ eq(12)
-
-  // [list elements]
-  focus: [0, 3, 7],  // [eq(0), eq(3), eq(7)]
-
-  // Elements you want to ignore it. You can use -1, -2 to count from backward.
-  ignore: [1, 2, 5],
+  // Optional, use if you don't want to crawl the whole list. ** ALL STRAT FROM 0 **
+  listOption: ['limit', 10],           // eq(0) ~ eq(9)
+  // listOption: ['range', 6, 12],     // eq(6) ~ eq(12), if without end, it will continue to the last one
+  // listOption: ['focus', 0, 3, 7],   // [eq(0), eq(3), eq(7)]
+  // listOption: ['ignore', 1, 2, 5],  // Elements you want to ignore it. You can use -1, -2 to count from backward.
   // =================================================================
 
-  // search DOM elements under $(container) or $(container).find(listElems)
-  keys: [{
-    name:  'main',            // Must have
-    elem: '.element1:eq(0)', // Must have, If empty or undefined, it will use container or listElems instead
-    noChild: true,           // Optional, remove all children elem under $element
-    outOfContainer: true,    // Optional, If exist, It will use $('html').find()
-    get:  'text',            // Must have,
-    // get: 'num'
-    // get: 'html'
-    // get: 'index'
-    // get: 'length'                      // => $element.length
-    // get: ['attr', 'attribute']         // => $elem.attr('attribute')
-    // get: ['data', 'dataAttribute', X]  // => $elem.data('dataAttribute')
-    // X is optional, if data is an array, set ['data', 'dataAttribute', 0] will return $elem.data('dataAttribute')[0]
-    // If data is an object, set ['data', 'dataAttribute', 'id'] will return $elem.data('dataAttribute')['id']
-    // If X not exist, it will return the whole data
 
-    use: ['index', 'textHere']  // Optional, use for advance process from 'get'
-    // use: ['match', /regex here/, number]  // => str.match(/regex here/)[number]
-    // use: ['split', ',', number]           // => str.split(',')[number]
-    // use: ['replace', 'one', 'two']        //
-    // use: ['substring', 0, 3]              //
-    // use: ['prepend', 'text here']         // => 'text here' + str
-    // use: ['append', 'text here']          // => str + 'text here'
+  keys: {
+    keyName: {
+      elem: '.element1:eq(0)', // Must have, If empty or undefined, it will use container or listElems instead
+      noChild: true,           // Optional, remove all children elem under $(elem)
+      outOfContainer: true,    // Optional, If exist, It will use $('html').find()
+      get: 'text',
+      // get: 'num'
+      // get: 'html'
+      // get: 'length'            // => $element.length
+      // get: 'attrName'          // => $elem.attr('attrName')
+      // get: 'data-dataName'     // => $elem.data('dataNAme')
+      // get: 'data-dataName(X)'
+      // X is optional, if data is an array, set 'data-dataName(0)' will return $elem.data('dataAttribute')[0]
+      // If data is an object, set 'data-dataName(id)' will return $elem.data('dataAttribute')['id']
+      // If X not exist, it will return the whole data
 
-    // Optional, if use is not enough, use 'process'
-    process: [
-      ['match', /regex here/, number],
-      ['replace', 'one', 'two'],
-      ['substring', 0, 3]
-    ]
-  }, {
-    name:  'detail',
-    elem: 'table tbody',
+      process: [   // Optional, if you want to do something else after 'get'
+        ['match', /regex here/, number],  // => str.match(/regex here/)[number], return array if no number, but will cause other process won't work
+        ['split', ',', number],           // => str.split(',')[number], return array if no number, but will cause other process won't work
+        ['replace', 'one', 'two'],
+        ['substring', 0, 3],
+        ['prepend', 'text'],              // => 'text' + get
+        ['append', 'text'],               // => get + 'text'
+        ['indexOf', 'text']               // => return number
+        ['independent function'],         // like encodeURI, encodeURIComponent, unescape, etc...
+      ]
+    },
+    keyName2: {
+      elem: 'table tbody thead',
 
-    // If the value you want is sperated to several elements, use collect to get all elems
-    collect: {
-      elems: [{
-        elem: 'tr:nth-child(1)',
-        get:  'text',
-      }, {
-        elem: 'tr:nth-child(2)',
-        get:  'num',
-      }, {
-        get:  ['attr', 'href']  // If no elem, the default is parent elem
-      }],
+      // If the value you want is sperated to several elements, use collect to get all elems
+      collect: {
+        elems: [{
+          elem: 'tr:nth-child(1)',
+          get:  'text',
+        }, {
+          elem: 'tr:nth-child(2)',
+          get:  'num',
+        }, {
+          get:  'href'  // If no elem, the default is parent elem (table tbody)
+        }],
 
-      // without this, collect will return array
-      combineWith: ', '
+        // without this, collect will return array
+        combineWith: ', '
+      }
+    },
+    keyName3: {
+      elem: 'table tbody tr',
+      // It will run all tr elems you set
+      collect: {
+        loop: true,
+        get:  'text'
+        combineWith: ', '
+      }
     }
-  }], {
-    name:  'detail2',
-    elem: 'table tbody tr',
-
-    // It will run all tr elems you set
-    collect: {
-      loop: true,
-      get:  'text'
-      combineWith: ', '
-    }
-  }]
+  }
 };
 ```
 
