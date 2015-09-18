@@ -1,10 +1,12 @@
 var _ = require('lodash');
+var jsdom = require('jsdom').env;
 
 module.exports = function(content, setting, callback) {
-  // Prevent if content is buffer
-  content = content.toString();
+  // Prevent if content is a buffer
+  jsdom(content.toString(), function(err, window) {
+    if(err)
+      return callback(err, null);
 
-  require('jsdom').env(content, function (err, window) {
     var $ = require('jquery')(window);
 
     if(pageNotFound($, setting.pageNotFound))
@@ -12,59 +14,47 @@ module.exports = function(content, setting, callback) {
 
     var $container = $(setting.container);
     var keys = setting.keys;
-    var data = null;
 
-    if(setting.type === 'list') {
-      var $listElems = $container;
-      var length = $listElems.length;
+    if(setting.type !== 'list')
+      return callback(null, crawlContent($, $container, keys));
 
-      var range = function(start, end) {
-        var times = (start === 0) ? end : (end - start + 1);
+    var $listElems = $container;
+    var listLength = $listElems.length;
 
-        return _.times(times, function(i) {
-          return crawlContent($, $listElems.eq(start + i), keys)
+    var crawlInRange = function(listOptions) {
+      var start  = (listOptions[0] === 'range') ? listOptions[1] : 0;
+      var endKey = (listOptions[0] === 'range') ? ++listOptions[2] : listOptions[1];
+      var end    = (endKey && endKey <= listLength) ? endKey : listLength;
+
+      return _.times((end - start), function(i) {
+        return crawlContent($, $listElems.eq(start + i), keys)
+      });
+    };
+
+    var crawlInFocus = function(listOptions) {
+      var focusList = _.rest(listOptions);
+      if(listOptions[0] === 'ignore') {
+        var ignoreList = focusList.map(function(i) {
+          return (i < 0) ? (i + listLength) : i;
         });
-      };
 
-      var focus = _.partialRight(_.map, function(i) {
+        focusList = _.difference(_.range(listLength), ignoreList);
+      }
+
+      return focusList.map(function(i) {
         return (i < length) ? crawlContent($, $listElems.eq(i), keys) : null;
       });
+    };
 
-      var listOption = setting.listOption || [];
-      switch(listOption[0]) {
-        case 'limit':
-          var limit = (listOption[1] && listOption[1] <= length) ? listOption[1] : length;
-          data = range(0, limit);
-          break;
-        case 'range':
-          var start = listOption[1];
-          var end = (listOption[2] && listOption[2] < length) ? listOption[2] : (length - 1);
-          data = range(start, end);
-          break;
-        case 'focus':
-          data = focus(_.rest(listOption));
-          break;
-        case 'ignore':
-          var focusList = _.flow(
-            _.rest,
-            _.map(function(i) {
-              return (i < 0) ? i + length : i;
-            }),
-            _.partial(_.difference, _.range(length))
-          );
-
-          data = focus(focusList(listOption));
-          break;
-        default:
-          data = range(0, length);
-      }
+    switch(setting.listOption[0]) {
+      case 'focus':
+      case 'ignore':
+        return callback(null, crawlInFocus(setting.listOption));
+      case 'range':
+      case 'limit':
+      default:
+        return callback(null, crawlInRange(setting.listOption));
     }
-
-    // type: content
-    else
-      data = crawlContent($, $container, keys);
-
-    callback(null, data);
   });
 };
 
@@ -73,8 +63,8 @@ function pageNotFound($, pageNF) {
 
   if(pageNF && pageNF.length) {
     result = pageNF.map(function(json) {
-      var data = getValue($(json.elem), json);
-      data = json.process ? doProcess(data, json.process) : data;
+      var data = grabValue($(json.elem), json);
+      data = json.process ? process(data, json.process) : data;
 
       return (data === json.equalTo) ? 'true' : '';
     }) || [];
@@ -91,123 +81,103 @@ function crawlContent($, $content, keys) {
     if(options.elem)
       $elem = $elem.find(options.elem);
 
-    if($elem.length) {
-      if(options.noChild)
-        $elem = $elem.children().remove().end();
+    if(!$elem.length)
+      return null;
 
-      var collectOptions = options.collect;
-      if(collectOptions) {
-        var tmpArr = [];
-        if(collectOptions.elems) {
-          tmpArr = collectOptions.elems.map(function(tmp) {
-            var $tmpElem = tmp.elem ? $elem.find(tmp.elem) : $elem;
+    if(options.noChild)
+      $elem = $elem.children().remove().end();
 
-            return ($tmpElem.length) ? getValue($tmpElem, tmp) : '';
-          });
-        }
+    var collectOptions = options.collect;
+    if(!collectOptions)
+      return grabValue($elem, options);
 
-        else if(collectOptions.loop) {
-          tmpArr = $elem.map(function() {
-            return getValue($(this), collectOptions);
-          }).get();
-        }
-
-        return (typeof(collectOptions.combineWith) !== 'undefined') ? tmpArr.join(collectOptions.combineWith) : tmpArr;
-      }
-
-      else
-        return getValue($elem, options);
+    var tmpArr = [];
+    if(collectOptions.elems) {
+      tmpArr = collectOptions.elems.map(function(tmp) {
+        var $tmpElem = tmp.elem ? $elem.find(tmp.elem) : $elem;
+        return $tmpElem.length ? grabValue($tmpElem, tmp) : '';
+      });
     }
+
+    else if(collectOptions.loop) {
+      tmpArr = $elem.map(function() {
+        return grabValue($(this), collectOptions);
+      }).get();
+    }
+
+    return (typeof(collectOptions.combineWith) !== 'undefined') ? tmpArr.join(collectOptions.combineWith) : tmpArr;
   });
 }
 
-function getValue($elem, json) {
-  var result = null;
+function grabValue($elem, json) {
+  var result = grab($elem, json);
 
-  var returnType = json.get;
-  switch(returnType) {
-    case 'text':
-      result = $elem.text().trim();
-      break;
-    case 'num':
-      var tmp = $elem.text().replace(/[^0-9]/g, '').trim(); // Prevent $1,000,000
-      result = (!tmp) ? 0 : parseFloat(tmp);
-      break;
-    case 'html':
-      result = $elem.html().trim();
-      break;
-    case 'length':
-      result = $elem.length;
-      break;
-    default:
-      if(returnType.indexOf('data') !== 0)
-        result = $elem.attr(returnType).trim();
-
-      else {
-        var temp = returnType.split(/-|\(|\)/);
-        result = $elem.data(temp[1]);
-        if(temp[2])
-          result = result[temp[2]];
-      }
-  }
-
-  return json.process ? doProcess(result, json.process) : result;
+  return json.process ? process(result, json.process) : result;
 }
 
+function grab($elem, json) {
+  var returnType = json.get;
+  switch(returnType.split('-')[0]) {
+    case 'num':
+      var tmp = $elem.text().replace(/[^0-9]/g, ''); // Prevent $1,000,000
+
+      return (!tmp) ? 0 : parseFloat(tmp);
+    case 'text':
+    case 'html':
+      return $elem[returnType]().trim();
+    case 'length':
+      return $elem.length;
+    case 'data':
+      var temp = returnType.split(/-|\(|\)/);
+      var dataValue = $elem.data(temp[1]);
+
+      return temp[2] ? dataValue[temp[2]] : dataValue;
+    default:
+      return $elem.attr(returnType);
+  }
+}
+
+_.mixin({
+  match: function(str, regex, address) {
+    var tmp = str.match(regex);
+
+    return (tmp && address) ? (tmp[address] || '') : tmp;
+  },
+  split: function(str, keyword, address) {
+    var tmp = str.split(keyword);
+
+    return address ? (tmp[address] || '') : tmp;
+  },
+  replace: function(str, from, to) {
+    return str.replace(from, to);
+  },
+  substring: function(str, start, end) {
+    start = start || 0;
+    end   = end || str.length;
+
+    return str.substring(start, end);
+  },
+  prepend: function(str, arg) {
+    return arg + str;
+  },
+  append: function(str, arg) {
+    return str + arg;
+  },
+  escape:    escape,
+  encode:  _.escape,
+  encodeURI: encodeURI,
+  encodeURIComponent: encodeURIComponent,
+  unescape:  unescape,
+  decode:  _.unescape,
+  decodeURI: decodeURI,
+  decodeURIComponent: decodeURIComponent,
+});
+
 // process
-function doProcess(str, processList) {
+function process(str, processList) {
   processList.forEach(function(job) {
-    str = process(str, job);
+    str = _[job[0]](str, job[1], job[2]);
   });
 
   return str;
-}
-
-function process(str, job) {
-  var result = str || '';
-  switch(job[0]) {
-    case 'indexOf':
-      result = result.indexOf(job[1]);
-      break;
-    case 'match':
-      result = result.match(job[1]);
-
-      if(result && job[2])
-        result = (result[job[2]] || '').trim();
-      break;
-    case 'split':
-      result = result.split(job[1]);
-
-      if(job[2])
-        result = (result[job[2]] || '').trim();
-      break;
-    case 'replace':
-      result = result.replace(job[1], job[2]).trim();
-      break;
-    case 'substring':
-      var start = job[1] || 0;
-      var end   = job[2] || result.length;
-
-      result = result.substring(start, end);
-      break;
-    case 'prepend':
-      result = job[1] + result;
-      break;
-    case 'append':
-      result += job[1];
-      break;
-    default:
-      return eval([job[0], result]);
-  }
-
-  return result;
-}
-
-// http://danthedev.com/2015/09/09/lisp-in-your-language/
-// eval([function, arg]);
-function eval(expression) {
-  var fn = expression[0];
-  var args = expression.slice(1);
-
-  return fn.apply(null, args);
 }

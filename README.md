@@ -51,7 +51,6 @@ var setting = {
   // listOption: ['ignore', 1, 2, 5],  // Elements you want to ignore it. You can use -1, -2 to count from backward.
   // =================================================================
 
-
   keys: {
     keyName: {
       elem: '.element1:eq(0)', // Must have, If empty or undefined, it will use container or listElems instead
