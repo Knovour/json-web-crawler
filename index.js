@@ -165,11 +165,9 @@ _.mixin({
   decodeURIComponent,
 });
 
-// process
 function process(str, processList) {
-  processList.forEach(job => {
+  for(let job of processList)
     str = _[job[0]](str, job[1], job[2]);
-  });
 
   return str;
 }
