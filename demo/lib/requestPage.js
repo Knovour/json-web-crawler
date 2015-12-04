@@ -1,14 +1,14 @@
 var Request = require('request');
 
-module.exports = function(url, callback) {
+module.exports = (url, callback) => {
   console.log('Request: ' + url);
 
-  var query = {
+  const query = {
     uri: encodeURI(url),
     timeout: 20000
   };
 
-  Request(query, function(e, res, body) {
+  Request(query, (e, res, body) => {
     if(e || !res.statusCode)
       callback(null, null);
 
