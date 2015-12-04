@@ -1,4 +1,7 @@
-exports.start = function(json) {
+'use strict'
+
+// Not in use
+exports.start = json => {
   if(!json.container)
     return {pass: false, msg: 'Key not found: container'};
 
@@ -6,7 +9,7 @@ exports.start = function(json) {
     return {pass: false, msg: 'Key not found: listElems'};
 
   if(json.pageNotFound) {
-    var result = checkWithLoop(json.pageNotFound, 'pageNotFound');
+    const result = checkWithLoop(json.pageNotFound, 'pageNotFound');
 
     if(!result.pass)
       return result;
@@ -16,8 +19,7 @@ exports.start = function(json) {
     return {pass: false, msg: 'Key not found: keys'};
 
   else {
-    var keyList = [];
-    var result = checkWithLoop(json.keys, 'keys');
+    const result = checkWithLoop(json.keys, 'keys');
 
     if(!result.pass)
       return result;
@@ -27,8 +29,8 @@ exports.start = function(json) {
 };
 
 function checkWithLoop(json, parentKey) {
-  var keyList = [];
-  var result = {};
+  let keyList = [];
+  let result = {};
 
   json.every(function(e) {
     result = checkWithoutKeyName(e, parentKey);
@@ -48,8 +50,8 @@ function checkWithLoop(json, parentKey) {
 }
 
 function checkWithKeyName(json, parentKey) {
-  var result = {pass: true};
-  
+  let result = {pass: true};
+
   if(!json.name)
     result = {pass: false, msg: 'Key not found: name in ' + parentKey};
 
@@ -64,7 +66,7 @@ function checkWithKeyName(json, parentKey) {
       });
     }
   }
-  
+
   if(result.pass)
     result = checkWithoutKeyName(json, parentKey);
 
@@ -72,7 +74,7 @@ function checkWithKeyName(json, parentKey) {
 }
 
 function checkWithoutKeyName(json, parentKey) {
-  var result = {pass: true};
+  let result = {pass: true};
 
   if(!json.get && !json.collect)
     result = {pass: false, msg: 'Key not found: get in ' + parentKey};
@@ -81,6 +83,6 @@ function checkWithoutKeyName(json, parentKey) {
     if(!(json.use instanceof Array) || json.use.length < 2)
       result = {pass: false, msg: 'Keyword need length not match in ' + parentKey};
   }
-  
+
   return result;
 }

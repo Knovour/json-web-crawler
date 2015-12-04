@@ -1,69 +1,69 @@
-var _ = require('lodash');
-var jsdom = require('jsdom').env;
+'use strict'
 
-module.exports = function(content, setting, callback) {
-  // Prevent if content is a buffer
-  jsdom(content.toString(), function(err, window) {
-    if(err)
-      return callback(err, null);
+const _ = require('lodash');
+const jsdom = require('jsdom').env;
 
-    var $ = require('jquery')(window);
+module.exports = (content, setting) => {
+  return new Promise((resolve, reject) => {
+    // Prevent if content is a buffer
+    jsdom(content.toString(), (err, window) => {
+      if(err)
+        return reject(err);
 
-    if(pageNotFound($, setting.pageNotFound))
-      return callback('Page not found', null);
+      const $ = require('jquery')(window);
 
-    var $container = $(setting.container);
-    var keys = setting.keys;
+      if(pageNotFound($, setting.pageNotFound))
+        return reject('Page not found');
 
-    if(setting.type !== 'list')
-      return callback(null, crawlContent($, $container, keys));
+      const $container = $(setting.container);
+      const keys = setting.keys;
 
-    var $listElems = $container;
-    var listLength = $listElems.length;
+      if(setting.type !== 'list')
+        return resolve(crawlContent($, $container, keys));
 
-    var crawlInRange = function(listOptions) {
-      var start  = (listOptions[0] === 'range') ? listOptions[1] : 0;
-      var endKey = (listOptions[0] === 'range') ? ++listOptions[2] : listOptions[1];
-      var end    = (endKey && endKey <= listLength) ? endKey : listLength;
+      const $listElems = $container;
+      const listLength = $listElems.length;
 
-      return _.times((end - start), function(i) {
-        return crawlContent($, $listElems.eq(start + i), keys)
-      });
-    };
+      const crawlInRange = listOption => {
+        const start  = (listOption[0] === 'range') ? listOption[1] : 0;
+        const endKey = (listOption[0] === 'range') ? ++listOption[2] : listOption[1];
+        const end    = (endKey && endKey <= listLength) ? endKey : listLength;
 
-    var crawlInFocus = function(listOptions) {
-      var focusList = _.rest(listOptions);
-      if(listOptions[0] === 'ignore') {
-        var ignoreList = focusList.map(function(i) {
-          return (i < 0) ? (i + listLength) : i;
-        });
+        return _.times((end - start), i => crawlContent($, $listElems.eq(start + i), keys));
+      };
 
-        focusList = _.difference(_.range(listLength), ignoreList);
+      const crawlInFocus = listOption => {
+        let focusList = _.rest(listOption);
+        if(listOption[0] === 'ignore') {
+          const ignoreList = focusList.map(i => (i < 0) ? (i + listLength) : i);
+          focusList = _.chain(listLength).range().difference(ignoreList).value();
+        }
+
+        return focusList.map(i => (i < length) ? crawlContent($, $listElems.eq(i), keys) : null);
+      };
+
+      if(setting.listOption && setting.listOption.length) {
+        switch(setting.listOption[0]) {
+          case 'focus':
+          case 'ignore':
+            return resolve(crawlInFocus(setting.listOption));
+          case 'range':
+          case 'limit':
+            return resolve(crawlInRange(setting.listOption));
+        }
       }
 
-      return focusList.map(function(i) {
-        return (i < length) ? crawlContent($, $listElems.eq(i), keys) : null;
-      });
-    };
-
-    switch(setting.listOption[0]) {
-      case 'focus':
-      case 'ignore':
-        return callback(null, crawlInFocus(setting.listOption));
-      case 'range':
-      case 'limit':
-      default:
-        return callback(null, crawlInRange(setting.listOption));
-    }
+      return resolve(crawlInRange(['range', 0]));
+    });
   });
 };
 
 function pageNotFound($, pageNF) {
-  var result = [];
+  let result = [];
 
   if(pageNF && pageNF.length) {
-    result = pageNF.map(function(json) {
-      var data = grabValue($(json.elem), json);
+    result = pageNF.map(json => {
+      let data = grabValue($(json.elem), json);
       data = json.process ? process(data, json.process) : data;
 
       return (data === json.equalTo) ? 'true' : '';
@@ -74,10 +74,10 @@ function pageNotFound($, pageNF) {
 }
 
 function crawlContent($, $content, keys) {
-  var $_content = $content || $('html');
+  const $_content = $content || $('html');
 
-  return _.mapValues(keys, function(options) {
-    var $elem = options.outOfContainer ? $('html') : $_content;
+  return _.mapValues(keys, options => {
+    let $elem = options.outOfContainer ? $('html') : $_content;
     if(options.elem)
       $elem = $elem.find(options.elem);
 
@@ -87,49 +87,45 @@ function crawlContent($, $content, keys) {
     if(options.noChild)
       $elem = $elem.children().remove().end();
 
-    var collectOptions = options.collect;
+    const collectOptions = options.collect;
     if(!collectOptions)
       return grabValue($elem, options);
 
-    var tmpArr = [];
+    let tmpArr = [];
     if(collectOptions.elems) {
-      tmpArr = collectOptions.elems.map(function(tmp) {
-        var $tmpElem = tmp.elem ? $elem.find(tmp.elem) : $elem;
+      tmpArr = collectOptions.elems.map(tmp => {
+        const $tmpElem = tmp.elem ? $elem.find(tmp.elem) : $elem;
         return $tmpElem.length ? grabValue($tmpElem, tmp) : '';
       });
     }
 
-    else if(collectOptions.loop) {
-      tmpArr = $elem.map(function() {
-        return grabValue($(this), collectOptions);
-      }).get();
-    }
+    else if(collectOptions.loop)
+      tmpArr = $elem.map((i, e) => grabValue($(e), collectOptions)).get();
 
     return (typeof(collectOptions.combineWith) !== 'undefined') ? tmpArr.join(collectOptions.combineWith) : tmpArr;
   });
 }
 
 function grabValue($elem, json) {
-  var result = grab($elem, json);
+  const result = grab($elem, json);
 
-  return json.process ? process(result, json.process) : result;
+  return (json.process && json.process.length) ? process(result, json.process) : result;
 }
 
 function grab($elem, json) {
-  var returnType = json.get;
+  const returnType = json.get;
   switch(returnType.split('-')[0]) {
     case 'num':
-      var tmp = $elem.text().replace(/[^0-9]/g, ''); // Prevent $1,000,000
-
-      return (!tmp) ? 0 : parseFloat(tmp);
+      const tmp = $elem.text().replace(/[^0-9]/g, ''); // Prevent $1,000,000
+      return !tmp ? 0 : parseFloat(tmp);
     case 'text':
     case 'html':
       return $elem[returnType]().trim();
     case 'length':
       return $elem.length;
     case 'data':
-      var temp = returnType.split(/-|\(|\)/);
-      var dataValue = $elem.data(temp[1]);
+      const temp = returnType.split(/-|:/);
+      const dataValue = $elem.data(temp[1]);
 
       return temp[2] ? dataValue[temp[2]] : dataValue;
     default:
@@ -138,44 +134,40 @@ function grab($elem, json) {
 }
 
 _.mixin({
-  match: function(str, regex, address) {
-    var tmp = str.match(regex);
-
+  match(str, regex, address) {
+    const tmp = str.match(regex);
     return (tmp && address) ? (tmp[address] || '') : tmp;
   },
-  split: function(str, keyword, address) {
-    var tmp = str.split(keyword);
-
+  split(str, keyword, address) {
+    const tmp = str.split(keyword);
     return address ? (tmp[address] || '') : tmp;
   },
-  replace: function(str, from, to) {
+  replace(str, from, to) {
     return str.replace(from, to);
   },
-  substring: function(str, start, end) {
+  substring(str, start, end) {
     start = start || 0;
     end   = end || str.length;
 
     return str.substring(start, end);
   },
-  prepend: function(str, arg) {
+  prepend(str, arg) {
     return arg + str;
   },
-  append: function(str, arg) {
+  append(str, arg) {
     return str + arg;
   },
-  escape:    escape,
-  encode:  _.escape,
-  encodeURI: encodeURI,
-  encodeURIComponent: encodeURIComponent,
-  unescape:  unescape,
-  decode:  _.unescape,
-  decodeURI: decodeURI,
-  decodeURIComponent: decodeURIComponent,
+  encode:  escape,
+  encodeURI,
+  encodeURIComponent,
+  decode:  unescape,
+  decodeURI,
+  decodeURIComponent,
 });
 
 // process
 function process(str, processList) {
-  processList.forEach(function(job) {
+  processList.forEach(job => {
     str = _[job[0]](str, job[1], job[2]);
   });
 

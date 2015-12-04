@@ -1,6 +1,7 @@
 # Json Web Crawler
 
 Use JSON to list all elements (with css 3 and jquery selector) that you want to crawl.
+Only run in node >= 4.0
 
 #### [Demo]
 run the two scripts (kickstarter & steam) in terminal to see what happen.
@@ -10,15 +11,15 @@ run the two scripts (kickstarter & steam) in terminal to see what happen.
 npm i json-web-crawler --save
 ```
 ```javascript
-var Crawler = require('json-web-crawler');
+var Crawl = require('json-web-crawl');
 
-Crawler('HTML content', your json setting, function(err, result) {
-  console.log(result);
-});
+Crawl('HTML content', your json setting)
+  .then(console.log)
+  .catch(console.log);
 ```
 
 ## Variables
-It's messy now, I know.
+It's messy, I know.
 
 ```javascript
 var setting = {
@@ -62,12 +63,16 @@ var setting = {
       // get: 'length'            // => $element.length
       // get: 'attrName'          // => $elem.attr('attrName')
       // get: 'data-dataName'     // => $elem.data('dataNAme')
-      // get: 'data-dataName(X)'
-      // X is optional, if data is an array, set 'data-dataName(0)' will return $elem.data('dataAttribute')[0]
-      // If data is an object, set 'data-dataName(id)' will return $elem.data('dataAttribute')['id']
+      // get: 'data-dataName:X'
+      // X is optional, if data is an array, set 'data-dataName:0' will return $elem.data('dataAttribute')[0]
+      // If data is an object, set 'data-dataName:id' will return $elem.data('dataAttribute')['id']
       // If X not exist, it will return the whole data
 
-      process: [   // Optional, if you want to do something else after 'get'
+      // Optional, if you want to do something else after 'get'
+      // You can use functions that exist in (lodash)[https://lodash.com/docs].
+      // Due to lodash has the same name `escape` & `unescape` functions with different behavior,
+      // so both in pure js renamed to `encode` & `decode` here.
+      process: [
         ['match', /regex here/, number],  // => str.match(/regex here/)[number], return array if no number, but will cause other process won't work
         ['split', ',', number],           // => str.split(',')[number], return array if no number, but will cause other process won't work
         ['replace', 'one', 'two'],

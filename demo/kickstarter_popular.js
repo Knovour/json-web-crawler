@@ -1,6 +1,6 @@
 console.log('Crawl the popular list at Kickstarter. \n');
 
-var setting = {
+const setting = {
   type: 'list',
   container: '#projects_list .project-card',
   pageNotFound: [{
@@ -10,7 +10,7 @@ var setting = {
   }],
   keys: {
     projectID: {
-      get: 'data-project(id)',
+      get: 'data-project:id',
     },
     name: {
       elem: '.project-title',
@@ -50,18 +50,14 @@ var setting = {
   }
 };
 
-var url = 'https://www.kickstarter.com/discover/popular?ref=popular';
-var Crawler = require('../index');
+const url = 'https://www.kickstarter.com/discover/popular?ref=popular';
+const Crawler = require('../index');
 
-require('./lib/requestPage')(url, function(err, content) {
+require('./lib/requestPage')(url, (err, content) => {
   if(content) {
-    Crawler(content, setting, function(err, result) {
-      if(err)
-        console.log('Err: ' + err);
-
-      console.log(result);
-      process.exit(0);
-    });
+    Crawler(content, setting)
+      .then(console.log)
+      .catch(console.log);
   }
 
   else

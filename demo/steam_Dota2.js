@@ -1,6 +1,6 @@
 console.log('Crawl Dota 2 description at Steam site. \n');
 
-var setting = {
+const setting = {
   type: 'content',
   container: '#game_highlights .rightcol',
   keys: {
@@ -56,18 +56,14 @@ var setting = {
   }
 };
 
-var url = 'http://store.steampowered.com/app/570/';
-var Crawler = require('../index');
+const url = 'http://store.steampowered.com/app/570/';
+const Crawler = require('../index');
 
-require('./lib/requestPage')(url, function(err, content) {
+require('./lib/requestPage')(url, (err, content) => {
   if(content) {
-    Crawler(content, setting, function(err, result) {
-      if(err)
-        console.log('Err: ' + err);
-
-      console.log(result);
-      process.exit(0);
-    });
+    Crawler(content, setting)
+      .catch(console.log)
+      .then(console.log);
   }
 
   else
