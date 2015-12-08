@@ -5,8 +5,8 @@ const jsdom = require('jsdom').env;
 
 module.exports = (content, setting) => {
   return new Promise((resolve, reject) => {
-    // Prevent if content is a buffer
-    jsdom(content.toString(), (err, window) => {
+    content = (content || '').toString(); // Prevent if content is a buffer
+    jsdom(content, (err, window) => {
       if(err)
         return reject(err);
 
