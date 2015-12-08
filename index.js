@@ -69,8 +69,6 @@ function pageNotFound($, pageNF) { // Not tested yet
       switch(check) {
         case 'equal':
           return _.isEqual(grabValue($(json.elem), json), json.check[1]) ? 'true' : '';
-        case 'exist':
-          return $(json.elem).length ? 'true' : '';
         default:
           return grabValue($(json.elem), json);
       }
