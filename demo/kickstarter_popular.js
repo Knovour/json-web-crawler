@@ -9,6 +9,9 @@ const setting = {
     equalTo: '404'
   }],
   listOption: ['limit', 3],
+  // listOption: ['range', 0, 6],
+  // listOption: ['ignore', 0, 2, -1],
+  // listOption: ['focus', 3, -3],
   crawl: {
     projectID: {
       get: 'data-project:id',
