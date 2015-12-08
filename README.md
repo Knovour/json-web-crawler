@@ -27,7 +27,7 @@ var setting = {
   pageNotFound: [{
     elem: '.error-msg',
     get:  'text',
-    equalTo:  '404'  // If match, will return Not Found Error
+    check: ['equal', '404']  // No `process` here
   }],
 
   // 'content' or 'list', default is content if not set
@@ -47,12 +47,12 @@ var setting = {
 
   // Optional, use if you don't want to crawl the whole list. ** ALL STRAT FROM 0 **
   listOption: ['limit', 10],           // eq(0) ~ eq(9)
-  // listOption: ['range', 6, 12],     // eq(6) ~ eq(12), if without end, it will continue to the last one
+  // listOption: ['range', 6, 12],     // eq(6) ~ eq(11)*, if without end, it will continue to the last one
   // listOption: ['focus', 0, 3, 7],   // [eq(0), eq(3), eq(7)]
   // listOption: ['ignore', 1, 2, 5],  // Elements you want to ignore it. You can use -1, -2 to count from backward.
   // =================================================================
 
-  keys: {
+  crawl: {
     keyName: {
       elem: '.element1:eq(0)', // Must have, If empty or undefined, it will use container or listElems instead
       noChild: true,           // Optional, remove all children elem under $(elem)
@@ -70,8 +70,6 @@ var setting = {
 
       // Optional, if you want to do something else after 'get'
       // You can use functions that exist in (lodash)[https://lodash.com/docs].
-      // Due to lodash has the same name `escape` & `unescape` functions with different behavior,
-      // so both in pure js renamed to `encode` & `decode` here.
       process: [
         ['match', /regex here/, number],  // => str.match(/regex here/)[number], return array if no number, but will cause other process won't work
         ['split', ',', number],           // => str.split(',')[number], return array if no number, but will cause other process won't work
@@ -81,6 +79,8 @@ var setting = {
         ['append', 'text'],               // => get + 'text'
         ['indexOf', 'text']               // => return number
         ['independent function'],         // like encodeURI, encodeURIComponent, unescape, etc...
+        // Due to lodash has the same name `escape` & `unescape` functions with different behavior,
+        // so both in pure js renamed to `encode` & `decode` here.
       ]
     },
     keyName2: {

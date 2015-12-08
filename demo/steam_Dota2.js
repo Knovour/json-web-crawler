@@ -3,7 +3,7 @@ console.log('Crawl Dota 2 description at Steam site. \n');
 const setting = {
   type: 'content',
   container: '#game_highlights .rightcol',
-  keys: {
+  crawl: {
     appId: {
       elem: '.glance_tags',
       get:  'data-appid'

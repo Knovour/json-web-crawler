@@ -8,7 +8,8 @@ const setting = {
     get:  'text',
     equalTo: '404'
   }],
-  keys: {
+  listOption: ['limit', 3],
+  crawl: {
     projectID: {
       get: 'data-project:id',
     },

@@ -16,67 +16,74 @@ module.exports = (content, setting) => {
         return reject('Page not found');
 
       const $container = $(setting.container);
-      const keys = setting.keys;
+      const crawlData = setting.crawl;
 
       if(setting.type !== 'list')
-        return resolve(crawlContent($, $container, keys));
+        return resolve(crawlContent($, $container, crawlData));
 
       const $listElems = $container;
       const listLength = $listElems.length;
 
-      const crawlInRange = listOption => {
-        const start  = (listOption[0] === 'range') ? listOption[1] : 0;
-        const endKey = (listOption[0] === 'range') ? ++listOption[2] : listOption[1];
-        const end    = (endKey && endKey <= listLength) ? endKey : listLength;
+      const handleList = listOption => _.rest(listOption).map(i => (i < 0) ? (i + listLength) : i);
 
-        return _.times((end - start), i => crawlContent($, $listElems.eq(start + i), keys));
+      const crawlInRange = listOption => {
+        const start = listOption[1];
+        const end   = (listOption[2] && listOption[2] <= listLength) ? listOption[2] : listLength;
+
+        return _.times((end - start), i => crawlContent($, $listElems.eq(start + i), crawlData));
       };
 
       const crawlInFocus = listOption => {
-        let focusList = _.rest(listOption);
-        if(listOption[0] === 'ignore') {
-          const ignoreList = focusList.map(i => (i < 0) ? (i + listLength) : i);
-          focusList = _.chain(listLength).range().difference(ignoreList).value();
-        }
-
-        return focusList.map(i => (i < length) ? crawlContent($, $listElems.eq(i), keys) : null);
+        const focusList = _.rest(listOption);
+        return focusList.map(i => (i < listLength) ? crawlContent($, $listElems.eq(i), crawlData) : null);
       };
 
-      if(setting.listOption && setting.listOption.length) {
-        switch(setting.listOption[0]) {
-          case 'focus':
-          case 'ignore':
-            return resolve(crawlInFocus(setting.listOption));
-          case 'range':
-          case 'limit':
-            return resolve(crawlInRange(setting.listOption));
-        }
-      }
+      const option = (setting.listOption && setting.listOption.length) ? setting.listOption[0] : '';
+      switch(option) {
+        case 'ignore':
+          const focusList = _
+            .chain(listLength)
+            .range()
+            .difference(handleList(setting.listOption))
+            .value();
 
-      return resolve(crawlInRange(['range', 0]));
+          return resolve(crawlInFocus(['focus'].concat(focusList)));
+        case 'focus': return resolve(crawlInFocus(['focus'].concat(handleList(setting.listOption))));
+        case 'range': return resolve(crawlInRange(setting.listOption));
+        case 'limit': return resolve(crawlInRange(['range', 0, setting.listOption[1]]));
+        default:      return resolve(crawlInRange(['range', 0]));
+      }
     });
   });
 };
 
-function pageNotFound($, pageNF) {
+function pageNotFound($, pageNF) { // Not tested yet
   let result = [];
 
   if(pageNF && pageNF.length) {
     result = pageNF.map(json => {
-      let data = grabValue($(json.elem), json);
-      data = json.process ? process(data, json.process) : data;
+      if(!$(json.elem).length)
+        return '';
 
-      return (data === json.equalTo) ? 'true' : '';
-    }) || [];
+      const check = (json.check && json.check.length) ? json.check[0] : '';
+      switch(check) {
+        case 'equal':
+          return _.isEqual(grabValue($(json.elem), json), json.check[1]) ? 'true' : '';
+        case 'exist':
+          return $(json.elem).length ? 'true' : '';
+        default:
+          return grabValue($(json.elem), json);
+      }
+    });
   }
 
   return (result.join('') !== '');  // If check is all pass, return value will be ''
 }
 
-function crawlContent($, $content, keys) {
+function crawlContent($, $content, crawlData) {
   const $_content = $content || $('html');
 
-  return _.mapValues(keys, options => {
+  return _.mapValues(crawlData, options => {
     let $elem = options.outOfContainer ? $('html') : $_content;
     if(options.elem)
       $elem = $elem.find(options.elem);
@@ -102,13 +109,12 @@ function crawlContent($, $content, keys) {
     else if(collectOptions.loop)
       tmpArr = $elem.map((i, e) => grabValue($(e), collectOptions)).get();
 
-    return (typeof(collectOptions.combineWith) !== 'undefined') ? tmpArr.join(collectOptions.combineWith) : tmpArr;
+    return (typeof collectOptions.combineWith !== 'undefined') ? tmpArr.join(collectOptions.combineWith) : tmpArr;
   });
 }
 
 function grabValue($elem, json) {
   const result = grab($elem, json);
-
   return (json.process && json.process.length) ? process(result, json.process) : result;
 }
 
@@ -116,46 +122,46 @@ function grab($elem, json) {
   const returnType = json.get;
   switch(returnType.split('-')[0]) {
     case 'num':
-      const tmp = $elem.text().replace(/[^0-9]/g, ''); // Prevent $1,000,000
-      return !tmp ? 0 : parseFloat(tmp);
+      const num = parseFloat($elem.text().replace(/[^0-9]/g, '')); // Prevent $1,000,000
+      return !isNaN(num) ? num : 0;
     case 'text':
     case 'html':
       return $elem[returnType]().trim();
     case 'length':
       return $elem.length;
     case 'data':
-      const temp = returnType.split(/-|:/);
-      const dataValue = $elem.data(temp[1]);
+      const tmp = returnType.split(/-|:/);
+      const dataValue = $elem.data(tmp[1]);
 
-      return temp[2] ? dataValue[temp[2]] : dataValue;
+      return tmp[2] ? dataValue[tmp[2]] : dataValue;
     default:
       return $elem.attr(returnType);
   }
 }
 
 _.mixin({
-  match(str, regex, address) {
-    const tmp = str.match(regex);
+  match(data, regex, address) {
+    const tmp = data.match(regex);
     return (tmp && address) ? (tmp[address] || '') : tmp;
   },
-  split(str, keyword, address) {
-    const tmp = str.split(keyword);
+  split(data, keyword, address) {
+    const tmp = data.split(keyword);
     return address ? (tmp[address] || '') : tmp;
   },
-  replace(str, from, to) {
-    return str.replace(from, to);
+  replace(data, from, to) {
+    return data.replace(from, to);
   },
-  substring(str, start, end) {
+  substring(data, start, end) {
     start = start || 0;
-    end   = end || str.length;
+    end   = end || data.length;
 
-    return str.substring(start, end);
+    return data.substring(start, end);
   },
-  prepend(str, arg) {
-    return arg + str;
+  prepend(data, arg) {
+    return arg + data;
   },
-  append(str, arg) {
-    return str + arg;
+  append(data, arg) {
+    return data + arg;
   },
   encode:  escape,
   encodeURI,
@@ -165,9 +171,9 @@ _.mixin({
   decodeURIComponent,
 });
 
-function process(str, processList) {
+function process(data, processList) {
   for(let job of processList)
-    str = _[job[0]](str, job[1], job[2]);
+    data = _[job[0]](data, job[1], job[2]);
 
-  return str;
+  return data;
 }
