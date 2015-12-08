@@ -116,7 +116,7 @@ var setting = {
       // It will run all tr elems you set
       collect: {
         loop: true,
-        get:  'text'
+        get:  'text',
         combineWith: ', '
       }
     }
