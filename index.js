@@ -140,11 +140,15 @@ function grab($elem, json) {
 _.mixin({
   match(data, regex, address) {
     const tmp = data.match(regex);
-    return (tmp && address) ? (tmp[address] || '') : tmp;
+    const pointer = (typeof address !== 'undefined') ? parseFloat(address) : NaN;
+
+    return (tmp && !isNaN(pointer)) ? (tmp[pointer] || '') : tmp;
   },
   split(data, keyword, address) {
     const tmp = data.split(keyword);
-    return address ? (tmp[address] || '') : tmp;
+    const pointer = (typeof address !== 'undefined') ? parseFloat(address) : NaN;
+
+    return !isNaN(pointer) ? (tmp[pointer] || '') : tmp;
   },
   replace(data, from, to) {
     return data.replace(from, to);
