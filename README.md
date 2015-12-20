@@ -11,7 +11,7 @@ run the two scripts (kickstarter & steam) in terminal to see what happen.
 npm i json-web-crawler --save
 ```
 ```javascript
-var Crawl = require('json-web-crawl');
+var Crawl = require('json-web-crawler');
 
 Crawl('HTML content', your json setting)
   .then(console.log)
