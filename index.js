@@ -87,7 +87,7 @@ function crawlContent($, $content, crawlData) {
       $elem = $elem.find(options.elem);
 
     if(!$elem.length)
-      return null;
+      return options.default ? options.default : null;
 
     if(options.noChild)
       $elem = $elem.children().remove().end();
@@ -113,28 +113,46 @@ function crawlContent($, $content, crawlData) {
 
 function grabValue($elem, json) {
   const result = grab($elem, json);
-  return (json.process && json.process.length) ? process(result, json.process) : result;
+
+  if(json.default && result === json.default)
+    return result;
+
+  if(json.process && json.process.length)
+    return process(result, json.process);
+
+  return result;
 }
 
 function grab($elem, json) {
   const returnType = json.get;
+
+  let value = null;
   switch(returnType.split('-')[0]) {
     case 'num':
       const num = parseFloat($elem.text().replace(/[^0-9]/g, '')); // Prevent $1,000,000
-      return !isNaN(num) ? num : 0;
+      value = !isNaN(num) ? num : 0;
+      break;
     case 'text':
     case 'html':
-      return $elem[returnType]().trim();
+      value = $elem[returnType]().trim();
+      break;
     case 'length':
-      return $elem.length;
+      value = $elem.length;
+      break;
     case 'data':
       const tmp = returnType.split(/-|:/);
       const dataValue = $elem.data(tmp[1]);
 
-      return tmp[2] ? dataValue[tmp[2]] : dataValue;
+      value = tmp[2] ? dataValue[tmp[2]] : dataValue;
+      break;
     default:
-      return $elem.attr(returnType);
+      value = $elem.attr(returnType);
   }
+
+  if((value === '' || value === null || typeof value === 'undefined') && json.default)
+    value = json.default;
+
+  return value;
 }
 
 _.mixin({

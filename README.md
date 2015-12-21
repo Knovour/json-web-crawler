@@ -90,7 +90,8 @@ var setting = {
         ['independent function'],         // like encodeURI, encodeURIComponent, unescape, etc...
         // Due to lodash has the same name `escape` & `unescape` functions with different behavior,
         // so both in pure js renamed to `encode` & `decode` here.
-      ]
+      ],
+      default: '' // return default value when elem not found, or value is null or undefined (`process` will be ignored)
     },
     keyName2: {
       elem: 'table tbody thead',
