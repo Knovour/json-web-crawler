@@ -1,61 +1,75 @@
 'use strict'
 
+const co = require('co');
 const _ = require('lodash');
+const jQuery = require('jquery');
 const jsdom = require('jsdom').env;
 
 module.exports = (content, setting) => {
-  return new Promise((resolve, reject) => {
-    content = (content || '').toString(); // Prevent if content is a buffer
-    jsdom(content, (err, window) => {
-      if(err)
-        return reject(err);
+  return co(function*() {
+    const window = yield DOM((content || '').toString()); // Prevent if content is a buffer
+    const result = yield analysis(window, setting);
 
-      const $ = require('jquery')(window);
-
-      if(pageNotFound($, setting.pageNotFound))
-        return reject('Page not found');
-
-      const $container = $(setting.container);
-      const crawlData = setting.crawl;
-
-      if(setting.type !== 'list')
-        return resolve(crawlContent($, $container, crawlData));
-
-      const $listElems = $container;
-      const listLength = $listElems.length;
-
-      const handleList = listOption => _.rest(listOption).map(i => (i < 0) ? (i + listLength) : i);
-
-      const crawlInRange = listOption => {
-        const start = listOption[1];
-        const end   = (listOption[2] && listOption[2] <= listLength) ? listOption[2] : listLength;
-
-        return _.times((end - start), i => crawlContent($, $listElems.eq(start + i), crawlData));
-      };
-
-      const crawlInFocus = listOption => {
-        const focusList = _.rest(listOption);
-        return focusList.map(i => (i < listLength) ? crawlContent($, $listElems.eq(i), crawlData) : null);
-      };
-
-      const option = (setting.listOption && setting.listOption.length) ? setting.listOption[0] : '';
-      switch(option) {
-        case 'ignore':
-          const focusList = _
-            .chain(listLength)
-            .range()
-            .difference(handleList(setting.listOption))
-            .value();
-
-          return resolve(crawlInFocus(['focus'].concat(focusList)));
-        case 'focus': return resolve(crawlInFocus(['focus'].concat(handleList(setting.listOption))));
-        case 'range': return resolve(crawlInRange(setting.listOption));
-        case 'limit': return resolve(crawlInRange(['range', 0, setting.listOption[1]]));
-        default:      return resolve(crawlInRange(['range', 0]));
-      }
-    });
+    window.close();
+    return result;
   });
 };
+
+function DOM(content) {
+  return new Promise((resolve, reject) =>
+    jsdom(content, (err, window) => err ? reject(err) : resolve(window))
+  );
+}
+
+function analysis(window, setting) {
+  return new Promise((resolve, reject) => {
+    const $ = jQuery(window);
+
+    if(pageNotFound($, setting.pageNotFound))
+      return reject('Page not found');
+
+    const $container = $(setting.container);
+    const crawlData = setting.crawl;
+
+    // type: content
+    if(setting.type !== 'list')
+      return resolve(crawlContent($, $container, crawlData));
+
+    // type: list
+    const $listElems = $container;
+    const listLength = $listElems.length;
+
+    const handleList = listOption => _.rest(listOption).map(i => (i < 0) ? (i + listLength) : i);
+
+    const crawlInRange = listOption => {
+      const start = listOption[1];
+      const end   = (listOption[2] && listOption[2] <= listLength) ? listOption[2] : listLength;
+
+      return _.times((end - start), i => crawlContent($, $listElems.eq(start + i), crawlData));
+    };
+
+    const crawlInFocus = listOption => {
+      const focusList = _.rest(listOption);
+      return focusList.map(i => (i < listLength) ? crawlContent($, $listElems.eq(i), crawlData) : null);
+    };
+
+    const option = (setting.listOption && setting.listOption.length) ? setting.listOption[0] : '';
+    switch(option) {
+      case 'ignore':
+        const focusList = _
+          .chain(listLength)
+          .range()
+          .difference(handleList(setting.listOption))
+          .value();
+
+        return resolve(crawlInFocus(['focus'].concat(focusList)));
+      case 'focus': return resolve(crawlInFocus(['focus'].concat(handleList(setting.listOption))));
+      case 'range': return resolve(crawlInRange(setting.listOption));
+      case 'limit': return resolve(crawlInRange(['range', 0, setting.listOption[1]]));
+      default:      return resolve(crawlInRange(['range', 0]));
+    }
+  });
+}
 
 function pageNotFound($, pageNF) { // Not tested yet
   let result = [];
@@ -66,16 +80,15 @@ function pageNotFound($, pageNF) { // Not tested yet
         return '';
 
       const check = (json.check && json.check.length) ? json.check[0] : '';
+      const value = grabValue($(json.elem), json);
       switch(check) {
-        case 'equal':
-          return _.isEqual(grabValue($(json.elem), json), json.check[1]) ? 'true' : '';
-        default:
-          return grabValue($(json.elem), json);
+        case 'equal': return _.isEqual(value, json.check[1]);
+        default:      return value;
       }
     });
   }
 
-  return (result.join('') !== '');  // If check is all pass, return value will be ''
+  return (_.compact(result).join('') !== '');  // If check is all pass, return value will be ''
 }
 
 function crawlContent($, $content, crawlData) {
