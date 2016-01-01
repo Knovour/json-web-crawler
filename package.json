@@ -1,6 +1,6 @@
 {
   "name": "json-web-crawler",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "Crawl website by json",
   "main": "index.js",
   "scripts": {
