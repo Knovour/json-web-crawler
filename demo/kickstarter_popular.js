@@ -1,4 +1,4 @@
-console.log('Crawl the popular list at Kickstarter. \n');
+console.info('Crawl the popular list at Kickstarter. \n');
 
 const setting = {
   type: 'list',
@@ -60,7 +60,7 @@ const Crawler = require('../index');
 require('./lib/requestPage')(url, (err, content) => {
   if(content) {
     Crawler(content, setting)
-      .then(console.log)
+      .then(console.error)
       .catch(console.log);
   }
 

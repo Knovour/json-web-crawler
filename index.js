@@ -71,7 +71,7 @@ function analysis(window, setting) {
   });
 }
 
-function pageNotFound($, pageNF) { // Not tested yet
+function pageNotFound($, pageNF) { // Not completed tested yet
   let result = [];
 
   if(pageNF && pageNF.length) {
@@ -120,7 +120,9 @@ function crawlContent($, $content, crawlData) {
     else if(collectOptions.loop)
       tmpArr = $elem.map((i, e) => grabValue($(e), collectOptions)).get();
 
-    return (typeof collectOptions.combineWith !== 'undefined') ? tmpArr.join(collectOptions.combineWith) : tmpArr;
+    return (typeof collectOptions.combineWith !== 'undefined' && collectOptions.combineWith !== null)
+      ? tmpArr.join(collectOptions.combineWith)
+      : tmpArr;
   });
 }
 
@@ -130,8 +132,12 @@ function grabValue($elem, json) {
   if(json.default && result === json.default)
     return result;
 
-  if(json.process && json.process.length)
-    return process(result, json.process);
+  if(json.process) {
+    switch(true) {
+      case (json.process instanceof Array):      return process(result, json.process);
+      case (typeof json.process === 'function'): return json.process(result);
+    }
+  }
 
   return result;
 }
@@ -205,8 +211,12 @@ _.mixin({
 });
 
 function process(data, processList) {
-  for(let job of processList)
+  for(let job of processList) {
+    if(typeof data !== 'string')
+      break;
+
     data = _[job[0]](data, job[1], job[2]);
+  }
 
   return data;
 }

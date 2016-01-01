@@ -1,4 +1,4 @@
-console.log('Crawl Dota 2 description at Steam site. \n');
+console.info('Crawl Dota 2 description at Steam site. \n');
 
 const setting = {
   type: 'content',
@@ -8,7 +8,7 @@ const setting = {
       elem: '.glance_tags',
       get:  'data-appid'
     },
-    name: {
+    appName: {
       outOfContainer: true,
       elem: '.apphub_AppName',
       get:  'text'
@@ -47,7 +47,10 @@ const setting = {
     },
     description: {
       elem: '.game_description_snippet',
-      get:  'text'
+      get:  'text',
+      process(value) {
+        return value.split(', ');
+      }
     },
     releaseDate: {
       elem: '.release_date .date',
@@ -62,7 +65,7 @@ const Crawler = require('../index');
 require('./lib/requestPage')(url, (err, content) => {
   if(content) {
     Crawler(content, setting)
-      .catch(console.log)
+      .catch(console.error)
       .then(console.log);
   }
 
