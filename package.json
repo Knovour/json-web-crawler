@@ -1,6 +1,6 @@
 {
   "name": "json-web-crawler",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "description": "Crawl website by json",
   "main": "index.js",
   "scripts": {
@@ -20,10 +20,10 @@
   },
   "dependencies": {
     "co": "^4.6.0",
-    "jquery": "^2.1.4",
-    "jsdom": "^7.1.1",
-    "lodash": "^3.10.1",
-    "request": "^2.67.0"
+    "jquery": "^2.2.2",
+    "jsdom": "^8.1.0",
+    "lodash": "^4.6.1",
+    "request": "^2.69.0"
   },
   "repository": {
     "type": "git",

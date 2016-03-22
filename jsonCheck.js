@@ -32,7 +32,7 @@ function checkWithLoop(json, parentKey) {
   let keyList = [];
   let result = {};
 
-  json.every(function(e) {
+  json.every(e => {
     result = checkWithoutKeyName(e, parentKey);
 
     if(e.name) {

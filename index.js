@@ -17,8 +17,7 @@ module.exports = (content, setting) => {
 
 function DOM(content) {
   return new Promise((resolve, reject) =>
-    jsdom(content, (err, window) => err ? reject(err) : resolve(window))
-  );
+    jsdom(content, (err, window) => err ? reject(err) : resolve(window)));
 }
 
 function analysis(window, setting) {
@@ -37,37 +36,36 @@ function analysis(window, setting) {
 
     // type: list
     const $listElems = $container;
-    const listLength = $listElems.length;
+    const elemListLength = $listElems.length;
 
-    const handleList = listOption => _.rest(listOption).map(i => (i < 0) ? (i + listLength) : i);
-
-    const crawlInRange = listOption => {
-      const start = listOption[1];
-      const end   = (listOption[2] && listOption[2] <= listLength) ? listOption[2] : listLength;
+    const crawlInRange = range => {
+      const start = range[0];
+      const end   = (range[1] && range[1] <= elemListLength) ? range[1] : elemListLength;
 
       return _.times((end - start), i => crawlContent($, $listElems.eq(start + i), crawlData));
     };
 
-    const crawlInFocus = listOption => {
-      const focusList = _.rest(listOption);
-      return focusList.map(i => (i < listLength) ? crawlContent($, $listElems.eq(i), crawlData) : null);
-    };
+    const crawlInFocus = focusList =>
+      focusList.map(i => (i < elemListLength) ? crawlContent($, $listElems.eq(i), crawlData) : null);
 
-    const option = (setting.listOption && setting.listOption.length) ? setting.listOption[0] : '';
-    switch(option) {
-      case 'ignore':
-        const focusList = _
-          .chain(listLength)
-          .range()
-          .difference(handleList(setting.listOption))
-          .value();
+    const crawlList = listOption => {
+      let option = '';
+      let list = [];
+      if(listOption && listOption.length && listOption.length > 1) {
+        option = listOption[0];
+        list   = _.tail(listOption).map(i => (i < 0) ? (i + elemListLength) : i);
+      }
 
-        return resolve(crawlInFocus(['focus'].concat(focusList)));
-      case 'focus': return resolve(crawlInFocus(['focus'].concat(handleList(setting.listOption))));
-      case 'range': return resolve(crawlInRange(setting.listOption));
-      case 'limit': return resolve(crawlInRange(['range', 0, setting.listOption[1]]));
-      default:      return resolve(crawlInRange(['range', 0]));
+      switch(option) {
+        case 'ignore': return crawlInFocus(_.difference(_.range(elemListLength), list));
+        case 'focus':  return crawlInFocus(list);
+        case 'range':  return crawlInRange(list);
+        case 'limit':  return crawlInRange([ 0, list[0] ]);
+        default:       return crawlInRange([ 0 ]);
+      }
     }
+
+    return resolve(crawlList(setting.listOption))
   });
 }
 

@@ -8,13 +8,13 @@ const setting = {
     get:  'text',
     equalTo: '404'
   }],
-  listOption: ['limit', 3],
-  // listOption: ['range', 0, 6],
-  // listOption: ['ignore', 0, 2, -1],
-  // listOption: ['focus', 3, -3],
+  // listOption: [ 'limit', 3 ],
+  // listOption: [ 'range', 0, 6 ],
+  listOption: [ 'ignore', 0, 2, -1 ],
+  // listOption: [ 'focus', 3, -3 ],
   crawl: {
     projectID: {
-      get: 'data-project:id',
+      get: 'data-pid',
     },
     name: {
       elem: '.project-title',
@@ -28,8 +28,8 @@ const setting = {
       elem: '.project-title a',
       get:  'href',
       process: [
-        ['split', '?', 0],
-        ['prepend', 'https://www.kickstarter.com']
+        [ 'split', '?', 0 ],
+        [ 'prepend', 'https://www.kickstarter.com' ]
       ]
     },
     description: {
@@ -44,7 +44,7 @@ const setting = {
       elem: '.project-percent-pledged',
       get:  'style',
       process: [
-        ['split', /:\s?/g, 1]
+        [ 'split', /:\s?/g, 1 ]
       ]
     },
     pledged: {
