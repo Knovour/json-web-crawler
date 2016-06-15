@@ -65,8 +65,8 @@ const Crawler = require('../index');
 require('./lib/requestPage')(url, (err, content) => {
   if(content) {
     Crawler(content, setting)
-      .catch(console.error)
-      .then(console.log);
+      .catch(console.log)
+      .then(console.error);
   }
 
   else

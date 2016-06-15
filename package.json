@@ -20,10 +20,10 @@
   },
   "dependencies": {
     "co": "^4.6.0",
-    "jquery": "^2.2.2",
-    "jsdom": "^8.1.0",
-    "lodash": "^4.6.1",
-    "request": "^2.69.0"
+    "jquery": "^3.0.0",
+    "jsdom": "^9.2.1",
+    "lodash": "^4.13.1",
+    "request": "^2.72.0"
   },
   "repository": {
     "type": "git",
