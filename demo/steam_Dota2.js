@@ -1,4 +1,6 @@
-console.info('Crawl Dota 2 description at Steam site. \n');
+const co = require('co');
+const request = require('request-promise');
+const crawl = require('../index');
 
 const setting = {
   type: 'content',
@@ -18,7 +20,7 @@ const setting = {
       get:  'src'
     },
     reviews: {
-      elem: '.game_review_summary',
+      elem: '.game_review_summary:eq(0)',
       get:  'text',
     },
     tags: {
@@ -60,15 +62,12 @@ const setting = {
 };
 
 const url = 'http://store.steampowered.com/app/570/';
-const Crawler = require('../index');
+console.info('Crawl Dota 2 description at Steam site.');
 
-require('./lib/requestPage')(url, (err, content) => {
-  if(content) {
-    Crawler(content, setting)
-      .catch(console.log)
-      .then(console.error);
-  }
+co(function*() {
+  console.info(`Request: ${url}\n`);
+  const content = yield request(url);
+  const result = content ? yield crawl(content, setting) : 'No content';
 
-  else
-    console.log('No content');
-});
+  console.log('Result:', result);
+}).catch(console.error);

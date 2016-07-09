@@ -1,5 +1,3 @@
-'use strict'
-
 const co = require('co');
 const _ = require('lodash');
 const jQuery = require('jquery');
@@ -21,52 +19,23 @@ function DOM(content) {
 }
 
 function analysis(window, setting) {
-  return new Promise((resolve, reject) => {
-    const $ = jQuery(window);
+  const $ = jQuery(window);
 
-    if(pageNotFound($, setting.pageNotFound))
-      return reject('Page not found');
+  if(pageNotFound($, setting.pageNotFound))
+    return Promise.reject('Page not found');
 
-    const $container = $(setting.container);
-    const crawlData = setting.crawl;
+  const {
+    container = 'html',
+    type = 'content',
+    listOption = [],
+    crawl: crawlData = {},
+  } = setting;
 
-    // type: content
-    if(setting.type !== 'list')
-      return resolve(crawlContent($, $container, crawlData));
+  const result = (type !== 'list')
+    ? crawlContent($, $(container), crawlData)
+    : crawlList($, $(container), crawlData, listOption);
 
-    // type: list
-    const $listElems = $container;
-    const elemListLength = $listElems.length;
-
-    const crawlInRange = range => {
-      const start = range[0];
-      const end   = (range[1] && range[1] <= elemListLength) ? range[1] : elemListLength;
-
-      return _.times((end - start), i => crawlContent($, $listElems.eq(start + i), crawlData));
-    };
-
-    const crawlInFocus = focusList =>
-      focusList.map(i => (i < elemListLength) ? crawlContent($, $listElems.eq(i), crawlData) : null);
-
-    const crawlList = listOption => {
-      let option = '';
-      let list = [];
-      if(listOption && listOption.length && listOption.length > 1) {
-        option = listOption[0];
-        list   = _.tail(listOption).map(i => (i < 0) ? (i + elemListLength) : i);
-      }
-
-      switch(option) {
-        case 'ignore': return crawlInFocus(_.difference(_.range(elemListLength), list));
-        case 'focus':  return crawlInFocus(list);
-        case 'range':  return crawlInRange(list);
-        case 'limit':  return crawlInRange([ 0, list[0] ]);
-        default:       return crawlInRange([ 0 ]);
-      }
-    }
-
-    return resolve(crawlList(setting.listOption))
-  });
+  return Promise.resolve(result);
 }
 
 function pageNotFound($, pageNF) { // Not completed tested yet
@@ -89,16 +58,37 @@ function pageNotFound($, pageNF) { // Not completed tested yet
   return (_.compact(result).join('') !== '');  // If check is all pass, return value will be ''
 }
 
-function crawlContent($, $content, crawlData) {
-  const $_content = $content || $('html');
+function crawlList($, $listElems, crawlData, [ _option, ..._list ]) {
+  const elemLength = $listElems.length;
 
+  const crawlInRange = ([ start, _end = elemLength ]) => {
+    const end = (_end <= elemLength) ? _end : elemLength;
+    return _.times((end - start), i => crawlContent($, $listElems.eq(start + i), crawlData));
+  };
+
+  const crawlInFocus = focusList =>
+    focusList.map(i => (i < elemLength) ? crawlContent($, $listElems.eq(i), crawlData) : null);
+
+  const option = _list.length ? _option : '';
+  const list   = _list.map(i => (i < 0) ? (i + elemLength) : i);
+
+  switch(option) {
+    case 'ignore': return crawlInFocus(_.difference(_.range(elemLength), list));
+    case 'focus':  return crawlInFocus(list);
+    case 'range':  return crawlInRange(list);
+    case 'limit':  return crawlInRange([ 0, list[0] ]);
+    default:       return crawlInRange([ 0 ]);
+  }
+}
+
+function crawlContent($, $content, crawlData) {
   return _.mapValues(crawlData, options => {
-    let $elem = options.outOfContainer ? $('html') : $_content;
+    let $elem = options.outOfContainer ? $('html') : $content;
     if(options.elem)
       $elem = $elem.find(options.elem);
 
     if(!$elem.length)
-      return options.default ? options.default : null;
+      return ('default' in options) ? options.default : null;
 
     if(options.noChild)
       $elem = $elem.children().remove().end();
@@ -107,27 +97,33 @@ function crawlContent($, $content, crawlData) {
     if(!collectOptions)
       return grabValue($elem, options);
 
-    let tmpArr = [];
-    if(collectOptions.elems) {
-      tmpArr = collectOptions.elems.map(tmp => {
-        const $tmpElem = tmp.elem ? $elem.find(tmp.elem) : $elem;
-        return $tmpElem.length ? grabValue($tmpElem, tmp) : '';
-      });
-    }
+    const dataList = (({ elems = [], loop = false }) => {
+      switch(true) {
+        case elems.length:
+          return elems.map(tmp => {
+            const $tmpElem = tmp.elem ? $elem.find(tmp.elem) : $elem;
+            return $tmpElem.length ? grabValue($tmpElem, tmp) : '';
+          });
+        case loop:
+          return $elem.map((i, e) => grabValue($(e), collectOptions)).get();
+        default:
+          return [];
+      }
+    })(collectOptions);
 
-    else if(collectOptions.loop)
-      tmpArr = $elem.map((i, e) => grabValue($(e), collectOptions)).get();
-
-    return (typeof collectOptions.combineWith !== 'undefined' && collectOptions.combineWith !== null)
-      ? tmpArr.join(collectOptions.combineWith)
-      : tmpArr;
+    return ('combineWith' in collectOptions && collectOptions.combineWith !== null)
+      ? dataList.join(collectOptions.combineWith)
+      : dataList;
   });
 }
 
 function grabValue($elem, json) {
-  const result = grab($elem, json);
+  const result = format($elem, json.get);
 
-  if(json.default && result === json.default)
+  if(result === '' || result === null || typeof result === 'undefined')
+    return ('default' in json) ? json.default : result;
+
+  if('default' in json && result === json.default)
     return result;
 
   if(json.process) {
@@ -140,36 +136,24 @@ function grabValue($elem, json) {
   return result;
 }
 
-function grab($elem, json) {
-  const returnType = json.get;
-
-  let value = null;
+function format($elem, returnType = 'text') {
   switch(returnType.split('-')[0]) {
     case 'num':
-      const num = parseFloat($elem.text().replace(/[^0-9]/g, '')); // Prevent $1,000,000
-      value = !isNaN(num) ? num : 0;
-      break;
+      const num = parseFloat($elem.text().replace(/[^0-9]/g, '')); // Prevent like $1,000,000
+      return !isNaN(num) ? num : 0;
     case 'text':
     case 'html':
-      value = $elem[returnType]().trim();
-      break;
+      return $elem[returnType]().trim();
     case 'length':
-      value = $elem.length;
-      break;
+      return $elem.length;
     case 'data':
       const tmp = returnType.split(/-|:/);
       const dataValue = $elem.data(tmp[1]);
 
-      value = tmp[2] ? dataValue[tmp[2]] : dataValue;
-      break;
+      return tmp[2] ? dataValue[tmp[2]] : dataValue;
     default:
-      value = $elem.attr(returnType);
+      return $elem.attr(returnType);
   }
-
-  if((value === '' || value === null || typeof value === 'undefined') && json.default)
-    value = json.default;
-
-  return value;
 }
 
 _.mixin({
@@ -188,10 +172,8 @@ _.mixin({
   replace(data, from, to) {
     return data.replace(from, to);
   },
-  substring(data, start, end) {
-    start = start || 0;
-    end   = end || data.length;
-
+  substring(data, start = 0, end) {
+    end = end || data.length;
     return data.substring(start, end);
   },
   prepend(data, arg) {
@@ -200,10 +182,10 @@ _.mixin({
   append(data, arg) {
     return data + arg;
   },
-  encode:  escape,
+  encode: escape,
   encodeURI,
   encodeURIComponent,
-  decode:  unescape,
+  decode: unescape,
   decodeURI,
   decodeURIComponent,
 });

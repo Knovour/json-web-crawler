@@ -1,10 +1,9 @@
 # Json Web Crawler
 
 Use JSON to list all elements (with css 3 and jquery selector) that you want to crawl.
-Only run in node >= 4.0
+Only run in node >= 6.0
 
-#### [Demo]
-run the two scripts (kickstarter & steam) in terminal to see what happen.
+**[Demo]**
 
 ## Usage
 ```javascript
@@ -144,4 +143,4 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-[Demo]: http://runnable.com/VMPSRHC3Ys9L_12d/json-web-crawler
+[Demo]: https://tonicdev.com/knovour/json-web-crawler-demo

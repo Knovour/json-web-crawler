@@ -1,4 +1,6 @@
-console.info('Crawl the popular list at Kickstarter. \n');
+const co = require('co');
+const request = require('request-promise');
+const crawl = require('../index');
 
 const setting = {
   type: 'list',
@@ -55,15 +57,12 @@ const setting = {
 };
 
 const url = 'https://www.kickstarter.com/discover/popular?ref=popular';
-const Crawler = require('../index');
+console.info('Crawl the popular list at Kickstarter.');
 
-require('./lib/requestPage')(url, (err, content) => {
-  if(content) {
-    Crawler(content, setting)
-      .then(console.log)
-      .catch(console.error);
-  }
+co(function*() {
+  console.info(`Request: ${url}\n`);
+  const content = yield request(url);
+  const result = content ? yield crawl(content, setting) : 'No content';
 
-  else
-    console.log('No content');
-});
+  console.log('Result:', result);
+}).catch(console.error);
