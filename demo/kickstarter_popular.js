@@ -3,16 +3,16 @@ const request = require('request-promise');
 const crawl = require('../index');
 
 const setting = {
-  type: 'list',
-  container: '#projects_list .project-card',
   pageNotFound: [{
     elem: '.grey-frame-inner h1',
     get:  'text',
-    equalTo: '404'
+    check: ['equal', '404']
   }],
+  type: 'list',
+  container: '#projects_list .project-card',
   // listOption: [ 'limit', 3 ],
-  // listOption: [ 'range', 0, 6 ],
-  listOption: [ 'ignore', 0, 2, -1 ],
+  listOption: [ 'range', 0, 10 ],
+  // listOption: [ 'ignore', 0, 2, -1 ],
   // listOption: [ 'focus', 3, -3 ],
   crawl: {
     projectID: {
@@ -65,4 +65,5 @@ co(function*() {
   const result = content ? yield crawl(content, setting) : 'No content';
 
   console.log('Result:', result);
+  console.log('Total:', result.length);
 }).catch(console.error);
