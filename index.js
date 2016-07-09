@@ -99,7 +99,7 @@ function crawlContent($, $content, crawlData) {
 
     const dataList = (({ elems = [], loop = false }) => {
       switch(true) {
-        case elems.length:
+        case (elems.length > 0):
           return elems.map(tmp => {
             const $tmpElem = tmp.elem ? $elem.find(tmp.elem) : $elem;
             return $tmpElem.length ? grabValue($tmpElem, tmp) : '';
