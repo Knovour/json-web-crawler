@@ -129,7 +129,7 @@ function grabValue($elem, json) {
   if(json.process) {
     switch(true) {
       case (json.process instanceof Array):      return process(result, json.process);
-      case (typeof json.process === 'function'): return json.process(result);
+      case (typeof json.process === 'function'): return json.process(result, $elem);
     }
   }
 
