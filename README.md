@@ -95,7 +95,7 @@ process: [
 ],
 
 // Or you want to DIY, you can use function instead
-process(value) {
+process(value, $elem /* jquery dom */) {
   // do something
 
   return newValue;
@@ -172,7 +172,7 @@ const setting = {
     description: {
       elem: '.game_description_snippet',
       get:  'text',
-      process(value) {
+      process(value, $elem) {
         return value.split(', ');
       }
     },
