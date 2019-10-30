@@ -1,6 +1,5 @@
-const co = require('co');
-const request = require('request-promise');
-const crawl = require('../index');
+const request = require('request-promise')
+const crawl = require('../index')
 
 const setting = {
   type: 'content',
@@ -51,7 +50,7 @@ const setting = {
       elem: '.game_description_snippet',
       get:  'text',
       process(value) {
-        return value.split(', ');
+        return value.split(', ')
       }
     },
     releaseDate: {
@@ -59,15 +58,17 @@ const setting = {
       get:  'text'
     }
   }
-};
+}
 
-const url = 'http://store.steampowered.com/app/570/';
-console.info('Crawl Dota 2 description at Steam site.');
+const url = 'http://store.steampowered.com/app/570/'
+console.info('Crawl Dota 2 description at Steam site.')
 
-co(function*() {
-  console.info(`Request: ${url}\n`);
-  const content = yield request(url);
-  const result = content ? yield crawl(content, setting) : 'No content';
+;(async function () {
+  try {
+    console.info(`Request: ${url}\n`)
+    const content = await request(url)
+    const result = content ? await crawl(content, setting) : 'No content'
 
-  console.log('Result:', result);
-}).catch(console.error);
+    console.log('Result:', result)
+  } catch (err) { console.error(err) }
+})()

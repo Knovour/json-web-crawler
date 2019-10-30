@@ -1,6 +1,5 @@
-const co = require('co');
-const request = require('request-promise');
-const crawl = require('../index');
+const request = require('request-promise')
+const crawl = require('../index')
 
 const setting = {
   pageNotFound: [{
@@ -54,16 +53,18 @@ const setting = {
       get:  'num'
     }
   }
-};
+}
 
-const url = 'https://www.kickstarter.com/discover/popular?ref=popular';
-console.info('Crawl the popular list at Kickstarter.');
+const url = 'https://www.kickstarter.com/discover/popular?ref=popular'
+console.info('Crawl the popular list at Kickstarter.')
 
-co(function*() {
-  console.info(`Request: ${url}\n`);
-  const content = yield request(url);
-  const result = content ? yield crawl(content, setting) : 'No content';
+;(async function () {
+  try {
+    console.info(`Request: ${url}\n`)
+    const content = await request(url)
+    const result = content ? await crawl(content, setting) : 'No content'
 
-  console.log('Result:', result);
-  console.log('Total:', result.length);
-}).catch(console.error);
+    console.log('Result:', result)
+    console.log('Total:', result.length)
+  } catch (err) { console.error(err) }
+})()
