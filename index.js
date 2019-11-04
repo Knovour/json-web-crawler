@@ -131,7 +131,7 @@ function grabValue($elem, json) {
 function format($elem, returnType = 'text') {
   switch(returnType.split('-')[0]) {
     case 'num':
-      const num = parseFloat($elem.text().replace(/[^0-9]/g, '')) // Prevent like $1,000,000
+      const num = parseFloat($elem.text().replace(/[^\d\.]/g, '')) // Prevent like $1,000,0.001
       return !isNaN(num) ? num : 0
     case 'text':
     case 'html':
