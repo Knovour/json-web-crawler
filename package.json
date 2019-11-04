@@ -1,6 +1,6 @@
 {
   "name": "json-web-crawler",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Crawl website by json",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "jquery": "^3.4.1",
-    "jsdom": "^15.2.0",
+    "jsdom": "^15.2.1",
     "lodash": "^4.17.15"
   },
   "repository": {
@@ -28,6 +28,6 @@
     "url": "https://github.com/Knovour/json-web-crawler"
   },
   "devDependencies": {
-    "request-promise": "^4.2.4"
+    "request-promise-native": "^1.0.8"
   }
 }
