@@ -112,7 +112,7 @@ function crawlContent($, $content, crawlData) {
 function grabValue($elem, json) {
   const result = format($elem, json.get)
 
-  if(result === '' || result === null || typeof result === 'undefined')
+  if(['', null, undefined].includes(result))
     return ('default' in json) ? json.default : result
 
   if('default' in json && result === json.default)
