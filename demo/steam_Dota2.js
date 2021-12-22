@@ -1,4 +1,4 @@
-const request = require('request-promise-native')
+const axios = require('axios')
 const crawl = require('../index')
 
 const setting = {
@@ -11,7 +11,7 @@ const setting = {
     },
     appName: {
       outOfContainer: true,
-      elem: '.apphub_AppName',
+      elem: '#appHubAppName',
       get:  'text'
     },
     image: {
@@ -66,8 +66,8 @@ console.info('Crawl Dota 2 description at Steam site.')
 ;(async function () {
   try {
     console.info(`Request: ${url}\n`)
-    const content = await request(url)
-    const result = content ? await crawl(content, setting) : 'No content'
+    const res = await axios.get(url)
+    const result = res.data ? await crawl(res.data, setting) : 'No content'
 
     console.log('Result:', result)
   } catch (err) { console.error(err) }
