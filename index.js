@@ -42,7 +42,7 @@ function pageNotFound($, pageNF) { // Not completed tested yet
       const value = grabValue($(json.elem), json)
       switch(check) {
         case 'equal': return _.isEqual(value, json.check[1])
-        default:      return value
+        default: return value
       }
     })
   }
@@ -174,10 +174,8 @@ _.mixin({
   append(data, arg) {
     return data + arg
   },
-  encode: escape,
   encodeURI,
   encodeURIComponent,
-  decode: unescape,
   decodeURI,
   decodeURIComponent,
 })
