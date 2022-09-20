@@ -112,20 +112,19 @@ function crawlContent($, $content, crawlData) {
 function grabValue($elem, json) {
   const result = format($elem, json.get)
 
-  if(['', null, undefined].includes(result))
-    return ('default' in json) ? json.default : result
-
-  if('default' in json && result === json.default)
-    return result
-
-  if(json.process) {
-    switch(true) {
-      case Array.isArray(json.process): return process(result, json.process)
-      case (typeof json.process === 'function'): return json.process(result, $elem)
-    }
+  switch(true) {
+    case ['', null, undefined].includes(result):
+      return ('default' in json) ? json.default : result
+    case 'default' in json && result === json.default:
+    case !json.process:
+      return result
+    case Array.isArray(json.process):
+      return process(result, json.process)
+    case (typeof json.process === 'function'):
+      return json.process(result, $elem)
+    default:
+      return result
   }
-
-  return result
 }
 
 function format($elem, returnType = 'text') {
